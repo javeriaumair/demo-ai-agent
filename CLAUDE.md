@@ -2,7 +2,7 @@
 
 ## Vision
 
-We are building a web app that will also have mobile apps (iOS and Android). AI agents will be integrated into both. The first agent is a **Content Writing Agent** — see [PRD.md](PRD.md) for full product requirements.
+We are building **LikhoAI**, a web app that will also have mobile apps (iOS and Android). AI agents will be integrated into both. The first agent is a **Content Writing Agent** — see [PRD.md](PRD.md) for full product requirements.
 
 ## Rules (always follow)
 
@@ -19,5 +19,5 @@ We are building a web app that will also have mobile apps (iOS and Android). AI 
 
 - **Web:** Next.js (App Router) + TypeScript
 - **Mobile:** React Native with Expo + TypeScript
-- **Auth + Database:** Supabase (free tier) — Google + Email login
+- **Auth + Database:** Supabase (free tier) — Google + Email login (Phase 1B; Phase 1A has no login or database)
 - **AI (Phase 1):** free-tier cloud LLM API (Google Gemini, with Groq as a fallback), called only from the server

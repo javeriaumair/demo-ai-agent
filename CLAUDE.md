@@ -21,3 +21,9 @@ We are building **LikhoAI**, a web app that will also have mobile apps (iOS and 
 - **Mobile:** React Native with Expo + TypeScript
 - **Auth + Database:** Supabase (free tier) — Google + Email login (Phase 1B; Phase 1A has no login or database)
 - **AI (Phase 1):** free-tier cloud LLM API (Google Gemini, with Groq as a fallback), called only from the server
+
+## Code conventions
+
+- Next.js 16 has breaking changes vs. older versions — follow [AGENTS.md](AGENTS.md) and check `node_modules/next/dist/docs/` before writing Next.js code.
+- Use the `rounded-brand` Tailwind class (15px) and color tokens from `src/app/globals.css` (`bg-surface`, `border-line`, `text-muted`, `bg-accent`, ...) instead of hard-coded values.
+- Shared form option lists live in `src/lib/article-options.ts`.

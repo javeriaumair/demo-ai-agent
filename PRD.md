@@ -4,7 +4,7 @@
 **First agent:** Content Writing Agent
 **Platforms:** Web (Next.js) → Mobile (iOS & Android via Expo)
 **Last updated:** 2026-10-13
-**Status:** Draft v4
+**Status:** Draft v5
 
 ---
 
@@ -114,7 +114,7 @@ Phase 1 is split into two parts:
 
 #### 4.4 Daily limit (1A)
 - **5 articles per day** per visitor, tracked by IP address on the server. Failed generations don't count.
-- *Implemented (v1):* in server memory — resets on server restart and is not shared across serverless instances. Move to a free key-value store (e.g. Upstash Redis) before public launch.
+- *Implemented:* stored in **Upstash Redis** (free tier) when its environment variables are set — supports both the Vercel Marketplace names (`KV_REST_API_URL` / `KV_REST_API_TOKEN`) and Upstash's own (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Without them (local development) or if Redis errors, it falls back to server memory. Visitor IPs are stored only as a SHA-256 hash; keys expire automatically after ~26 hours.
 - Show how many generations are left today.
 - Friendly message when the limit or the AI provider's free quota is reached.
 
@@ -151,7 +151,7 @@ Phase 1 is split into two parts:
 | AI | **Google Gemini API free tier** via official `@google/genai` SDK — models tried in order: `gemini-3.6-flash` → `gemini-3.5-flash-lite` (configurable with `GEMINI_MODEL`); **Groq free tier** as extra fallback (later) | 1A | Free |
 | Validation | Zod (shared by browser and server) | 1A | Free |
 | Export | `.md` (built in) and `.docx` (`docx` library, generated in the browser) | 1A | Free |
-| Rate limiting | Upstash Redis free tier (or similar) | 1A | Free |
+| Rate limiting | Upstash Redis free tier via official `@upstash/redis` (memory fallback locally) | 1A | Free |
 | Hosting | Vercel (Hobby/free tier) | 1A | Free |
 | Auth + Database | Supabase (Postgres + Auth, free tier) | 1B | Free |
 | Mobile | React Native + Expo (latest) | 2 | Free |
@@ -235,8 +235,8 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 - [ ] Add Privacy Policy and Terms of Service pages (required for Google/Facebook login and for the free-tier AI data notice).
 - [ ] Replace the Blog "coming soon" page, or hide the Blog link.
 - [x] Add an Urdu-script font (Noto Nastaliq Urdu) for Urdu articles — Inter has no Urdu letters.
-- [ ] Move the daily limit from server memory to a shared store (e.g. Upstash Redis free tier).
-- [ ] Add `GEMINI_API_KEY` to the hosting provider's environment variables (never in code).
+- [x] Move the daily limit from server memory to a shared store (Upstash Redis).
+- [ ] On Vercel: add `GEMINI_API_KEY` and connect Upstash for Redis (Storage → Marketplace) — see `.env.example`.
 - [ ] Articles come out shorter than the target length (e.g. ~460 words for "Short ~600"). Consider generating long articles section by section.
 
 ## 12. Decisions Log
@@ -252,4 +252,5 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 | 2026-10-13 | Dark mode toggle on all pages; website language dropdown is design-only until a later phase |
 | 2026-10-13 | Icons: `lucide-react`; illustrations are original SVGs (neon purple / pink / blue) |
 | 2026-10-13 | Gemini connected: `gemini-3.8-flash` (free tier) via `@google/genai`; structured JSON output; in-memory 5/day IP limit for now |
+| 2026-10-13 | Daily limit moved to Upstash Redis (memory fallback); deploying to Vercel |
 | 2026-10-13 | Default model changed to `gemini-3.6-flash` with automatic fallback to `gemini-3.5-flash-lite`: in testing, `gemini-3.8-flash` took 70–90 s (free-tier high demand) vs ~7 s. 3.8 can be re-enabled via `GEMINI_MODEL` |

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { articleRequestSchema, type GenerateResponse } from "@/lib/article-schema";
 import { generateArticle, UserFacingError } from "@/lib/ai";
-import { refund, tryConsume } from "@/lib/rate-limit";
+import { reserveGeneration } from "@/lib/rate-limit";
 
 // Long articles can take a while on the free tier.
 export const maxDuration = 120;
@@ -60,8 +60,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const key = clientKey(request);
-  const quota = tryConsume(key);
+  const quota = await reserveGeneration(clientKey(request));
   if (!quota.allowed) {
     return json(
       { ok: false, error: "You have used all your free articles for today. Please come back tomorrow!" },
@@ -73,7 +72,7 @@ export async function POST(request: Request) {
     const result = await generateArticle(parsed.data);
     return json({ ok: true, result, remaining: quota.remaining }, 200, { "Cache-Control": "no-store" });
   } catch (error) {
-    refund(key); // failed generations don't count against the limit
+    await quota.release(); // failed generations don't count against the limit
     if (error instanceof UserFacingError) {
       return json({ ok: false, error: error.message }, error.status);
     }

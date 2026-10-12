@@ -36,7 +36,7 @@ function getClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     throw new UserFacingError(
-      "The AI is not set up yet: GEMINI_API_KEY is missing in .env.local. Add your key and restart the server.",
+      "The AI is not set up yet: GEMINI_API_KEY is missing. Add it to .env.local (local) or Vercel Environment Variables, then restart/redeploy.",
       500,
     );
   }
@@ -123,7 +123,7 @@ function toUserFacingError(error: unknown): UserFacingError {
     }
     if (error.status === 400 && /api key/i.test(error.message)) {
       return new UserFacingError(
-        "The Gemini API key is not valid. Check GEMINI_API_KEY in .env.local.",
+        "The Gemini API key is not valid. Check GEMINI_API_KEY (.env.local or Vercel Environment Variables).",
         500,
       );
     }
@@ -135,7 +135,7 @@ function toUserFacingError(error: unknown): UserFacingError {
     }
     if (error.status === 404) {
       return new UserFacingError(
-        "The configured Gemini model was not found. Check GEMINI_MODEL in .env.local.",
+        "The configured Gemini model was not found. Check the GEMINI_MODEL setting.",
         500,
       );
     }

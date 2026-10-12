@@ -1,42 +1,116 @@
 @import "tailwindcss";
 
+/* Dark mode is driven by data-theme on <html> (set before paint by the
+   inline script in layout.tsx), so `dark:` utilities follow the toggle. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
-  color-scheme: light dark;
-  --background: #f6f7fb;
-  --foreground: #14161f;
+  color-scheme: light;
+  --background: #f7f7fb;
+  --foreground: #12131a;
   --surface: #ffffff;
-  --line: #e2e5ee;
-  --muted: #5b6275;
-  --accent: #4f46e5;
-  --accent-strong: #4338ca;
+  --surface-2: #f1f1f7;
+  --line: #e4e4ee;
+  --muted: #5d6177;
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --navy: #0f1535;
+  --navy-hover: #1c2452;
 }
 
+/* No-JS fallback: follow the OS setting until the script sets data-theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0d0f16;
-    --foreground: #eef0f6;
-    --surface: #161925;
-    --line: #2a2f40;
-    --muted: #9aa1b5;
-    --accent: #818cf8;
-    --accent-strong: #6366f1;
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --background: #0a0b14;
+    --foreground: #eef0f7;
+    --surface: #12141f;
+    --surface-2: #1a1d2b;
+    --line: #262a3c;
+    --muted: #9ca1b8;
+    --accent: #a78bfa;
+    --accent-strong: #8b5cf6;
+    --navy: #2b3a8f;
+    --navy-hover: #3546a8;
   }
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0a0b14;
+  --foreground: #eef0f7;
+  --surface: #12141f;
+  --surface-2: #1a1d2b;
+  --line: #262a3c;
+  --muted: #9ca1b8;
+  --accent: #a78bfa;
+  --accent-strong: #8b5cf6;
+  --navy: #2b3a8f;
+  --navy-hover: #3546a8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-line: var(--line);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-navy: var(--navy);
+  --color-navy-hover: var(--navy-hover);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   /* Project rule: 15px border radius for UI elements (class: rounded-brand) */
   --radius-brand: 15px;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-spin-slow: spin 40s linear infinite;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+/* Brand neon gradient: violet -> pink -> blue */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(110deg, #8b5cf6 0%, #ec4899 50%, #38bdf8 100%);
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(110deg, #a78bfa 0%, #f472b6 50%, #38bdf8 100%);
+  background-clip: text;
+  color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Sparkles } from "lucide-react";
 import {
   DEFAULTS,
   LANGUAGES,
@@ -8,12 +9,13 @@ import {
   MAX_LENGTHS,
   TONES,
 } from "@/lib/article-options";
-
-const fieldClass =
-  "w-full rounded-brand border border-line bg-surface px-4 py-3 text-base text-foreground placeholder:text-muted/70 outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15";
-
-const labelClass = "mb-2 block text-sm font-semibold text-foreground";
-const hintClass = "mt-1.5 text-xs text-muted";
+import {
+  fieldClass,
+  hintClass,
+  labelClass,
+  noticeClass,
+  primaryButtonClass,
+} from "@/lib/ui";
 
 export function ArticleForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -132,18 +134,13 @@ export function ArticleForm() {
           </div>
         </fieldset>
 
-        <button
-          type="submit"
-          className="w-full rounded-brand bg-accent px-6 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30 active:scale-[0.99]"
-        >
+        <button type="submit" className={`${primaryButtonClass} w-full py-4`}>
+          <Sparkles className="size-5" aria-hidden />
           Generate Article
         </button>
 
         {submitted && (
-          <p
-            role="status"
-            className="rounded-brand bg-accent/10 px-4 py-3 text-center text-sm text-accent"
-          >
+          <p role="status" className={noticeClass}>
             AI is not connected yet — article generation is coming soon.
           </p>
         )}

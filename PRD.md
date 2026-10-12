@@ -4,7 +4,7 @@
 **First agent:** Content Writing Agent
 **Platforms:** Web (Next.js) → Mobile (iOS & Android via Expo)
 **Last updated:** 2026-10-13
-**Status:** Draft v2
+**Status:** Draft v3
 
 ---
 
@@ -49,15 +49,42 @@ Phase 1 is split into two parts:
 
 | | Phase 1A — Generate (no login) | Phase 1B — Accounts & History |
 |---|---|---|
+| Marketing website (landing, blog placeholder) | ✅ | ✅ |
+| Login / signup pages | Design only | Working (Supabase) |
+| Dashboard with sidebar | ✅ | ✅ |
+| Dark mode toggle | ✅ | ✅ |
 | Content form + generation | ✅ | ✅ |
 | Edit / copy / download | ✅ | ✅ |
-| Login (Google + Email) | — | ✅ |
+| Login (Google + Email + Facebook) | — | ✅ |
 | Supabase database | — | ✅ |
 | History (saved articles) | — | ✅ |
 | Regenerate a single section | — | ✅ |
 | Daily limit (5 articles) | Per IP / browser | Per user account |
 
-### Phase 1A — Generate, edit, download (no login, no database)
+### Phase 1A — Website, dashboard, generate, edit, download (no login, no database)
+
+#### 4.0 Website & app pages
+| Route | Page | Notes |
+|---|---|---|
+| `/` | Landing page | Navbar, hero, features, how it works, pricing, testimonials, footer |
+| `/blog` | Blog | "Coming soon" placeholder for now |
+| `/login` | Login | Design only in 1A — real auth in 1B |
+| `/signup` | Sign up | Design only in 1A — real auth in 1B |
+| `/dashboard` | Dashboard → New Article | The article form, inside a SaaS-style sidebar layout |
+
+**Look & feel:** modern AI-tool style — dark hero with neon purple / pink / blue gradients, glowing abstract "AI brain / network" illustrations (original SVG, no copyrighted images), Inter font, 15px border radius, icons from `lucide-react`.
+
+**Navbar:** LikhoAI logo; menu (Features, How it Works, Pricing, Blog); dark mode toggle; website language dropdown; Login button; "Get Started Free" button. On mobile the menu collapses behind a hamburger button.
+
+**Dark mode:** light / dark toggle on all pages. Defaults to the device setting; the user's choice is remembered in the browser. No flash of the wrong theme on page load.
+
+**Website language dropdown (English / اردو / Roman Urdu):** design only in Phase 1. Translating the website interface itself is planned for a later phase. (This is separate from the *article* language, which works in Phase 1A.)
+
+**Login page:** "Welcome Back!" heading, email + password (show/hide eye icon), Remember me, Forgot password link, dark navy Login button, "Instant Login" divider, Login with Google / Facebook buttons, illustration panel on desktop.
+
+**Sign up page:** same style — name, email, password, confirm password (must match, min. 8 characters), Google / Facebook buttons.
+
+**Dashboard:** sidebar with New Article (active), History / Overview / Settings (marked "Soon" until 1B), free-plan usage card, "Back to website" link. On mobile the sidebar becomes a slide-in drawer.
 
 #### 4.1 Content generation form
 | Field | Type | Required |
@@ -92,7 +119,10 @@ Phase 1 is split into two parts:
 ### Phase 1B — Login, history, Supabase
 
 #### 4.5 Authentication
-- Sign up / login with **Google** or **Email** (Supabase Auth).
+- Sign up / login with **Google**, **Facebook** or **Email + password** (Supabase Auth), connected to the existing `/login` and `/signup` pages.
+- Remember me, forgot password (email reset link) and email verification.
+- `/dashboard` requires login; logged-out users are sent to `/login`.
+- *Facebook login needs a Meta developer app (free); Meta may require app review / business verification before public launch.*
 - Each user has their own private history.
 
 #### 4.6 History
@@ -114,7 +144,8 @@ Phase 1 is split into two parts:
 | Layer | Choice | Phase | Cost |
 |---|---|---|---|
 | Web frontend + backend | Next.js (App Router, latest) + TypeScript | 1A | Free |
-| UI | Tailwind CSS, **Inter** font, **15px** border radius, mobile-first | 1A | Free |
+| UI | Tailwind CSS, **Inter** font, **15px** border radius, mobile-first, light/dark mode | 1A | Free |
+| Icons | `lucide-react` (brand logos for Google/Facebook as inline SVG) | 1A | Free |
 | AI | **Google Gemini API free tier** (latest Flash model); **Groq free tier** as fallback | 1A | Free |
 | Rate limiting | Upstash Redis free tier (or similar) | 1A | Free |
 | Hosting | Vercel (Hobby/free tier) | 1A | Free |
@@ -154,10 +185,10 @@ Phase 1 is split into two parts:
 ## 8. Roadmap
 
 ### Phase 1A — Free Web MVP, no login ($0)
-Content form, outline/article/meta/FAQ generation, edit/copy/download, 5/day limit per IP, free-tier AI (Gemini + Groq fallback), deployment on Vercel.
+Marketing website (landing, pricing, blog placeholder), login/signup page designs, dashboard with sidebar, dark mode, content form, outline/article/meta/FAQ generation, edit/copy/download, 5/day limit per IP, free-tier AI (Gemini + Groq fallback), deployment on Vercel.
 
 ### Phase 1B — Accounts & History ($0)
-Google + Email login, Supabase database, saved history, single-section regeneration, 5/day limit per user account.
+Google + Facebook + Email login, Supabase database, saved history, single-section regeneration, 5/day limit per user account.
 
 ### Phase 2 — Mobile Apps (still free)
 - iOS & Android apps with Expo, using the same Supabase backend and API.
@@ -169,6 +200,8 @@ Google + Email login, Supabase database, saved history, single-section regenerat
 - Higher limits / paid subscription plans (payments integration).
 - Direct publishing to WordPress.
 - More agents (e.g. social media post agent, email writing agent).
+- Website interface in Urdu and Roman Urdu (make the language dropdown work).
+- Real blog with SEO articles.
 - SEO extras: keyword research, readability score, plagiarism check.
 
 ## 9. Success Metrics (Phase 1)
@@ -190,7 +223,14 @@ Google + Email login, Supabase database, saved history, single-section regenerat
 | Abuse / spam accounts (1B) | Rate limits, daily caps, email verification |
 | Vercel Hobby plan is for non-commercial use | Move to a paid or alternative host before charging users (Phase 3) |
 
-## 11. Decisions Log
+## 11. Before Public Launch (checklist)
+
+- [ ] Replace the **sample testimonials** on the landing page with real customer quotes (with their permission). The current ones are clearly marked "Sample User".
+- [ ] Add Privacy Policy and Terms of Service pages (required for Google/Facebook login and for the free-tier AI data notice).
+- [ ] Replace the Blog "coming soon" page, or hide the Blog link.
+- [ ] Add an Urdu-script font (e.g. Noto Nastaliq Urdu) for Urdu articles — Inter has no Urdu letters.
+
+## 12. Decisions Log
 
 | Date | Decision |
 |---|---|
@@ -198,3 +238,7 @@ Google + Email login, Supabase database, saved history, single-section regenerat
 | 2026-10-13 | Phase 1 split into **1A** (no login/database) and **1B** (login, Supabase, history) |
 | 2026-10-13 | Daily limit: **5 articles per user** (per IP in 1A, per account in 1B) |
 | 2026-10-13 | Single-section regeneration: **yes, in Phase 1B** |
+| 2026-10-13 | Professional website in 1A: landing page, `/login`, `/signup` (design only), `/dashboard` with sidebar |
+| 2026-10-13 | **Facebook login** added to Phase 1B (with Google + Email) |
+| 2026-10-13 | Dark mode toggle on all pages; website language dropdown is design-only until a later phase |
+| 2026-10-13 | Icons: `lucide-react`; illustrations are original SVGs (neon purple / pink / blue) |

@@ -3,12 +3,13 @@ import { LANGUAGES, LENGTHS, TONES } from "@/lib/article-options";
 import type { ArticleRequest } from "@/lib/article-schema";
 
 // Bump when prompts change, so output differences can be traced.
-export const PROMPT_VERSION = "content-writer-v1";
+export const PROMPT_VERSION = "content-writer-v2";
 
+// Models tend to write shorter than asked, so state a hard minimum.
 const WORD_TARGETS: Record<ArticleRequest["length"], string> = {
-  short: "about 600 words",
-  medium: "about 1200 words",
-  long: "about 2000 words",
+  short: "about 600 words — the article body must be at least 550 words",
+  medium: "about 1200 words — the article body must be at least 1100 words",
+  long: "about 2000 words — the article body must be at least 1850 words",
 };
 
 const LANGUAGE_RULES: Record<ArticleRequest["language"], string> = {

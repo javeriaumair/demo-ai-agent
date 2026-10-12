@@ -1,5 +1,5 @@
 import "server-only";
-import { ApiError, GoogleGenAI } from "@google/genai";
+import { ApiError, GoogleGenAI, ThinkingLevel, type GenerateContentConfig } from "@google/genai";
 import { z } from "zod";
 import {
   articleResultSchema,
@@ -9,8 +9,22 @@ import {
 import { SYSTEM_INSTRUCTION, buildUserPrompt } from "./prompts";
 import { UserFacingError } from "./errors";
 
-const DEFAULT_MODEL = "gemini-3.8-flash";
-const TIMEOUT_MS = 110_000;
+// Tried in order: if a model is overloaded, rate-limited or too slow, the
+// next one is used. Override with GEMINI_MODEL (comma-separated list).
+// gemini-3.8-flash is newest but was very slow under free-tier demand
+// (Oct 2026), so it is not the default.
+const DEFAULT_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash-lite"];
+
+// Models that accept a thinking level; LOW keeps answers fast.
+const LOW_THINKING_MODELS = new Set(["gemini-3.8-flash", "gemini-3.6-flash"]);
+
+const TOTAL_BUDGET_MS = 110_000; // stays under the route's maxDuration
+const PER_ATTEMPT_MS = 60_000; // leave time for a fallback model
+
+function configuredModels(): string[] {
+  const fromEnv = process.env.GEMINI_MODEL?.split(",").map((m) => m.trim()).filter(Boolean);
+  return fromEnv?.length ? fromEnv : DEFAULT_MODELS;
+}
 
 // Gemini accepts a JSON Schema subset; drop the "$schema" meta key.
 const responseJsonSchema = z.toJSONSchema(articleResultSchema);
@@ -30,26 +44,49 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
+/** Errors where trying another model may help. */
+function isRetryable(error: unknown): boolean {
+  if (error instanceof ApiError) return [429, 500, 503, 504].includes(error.status);
+  return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+}
+
 export async function generateWithGemini(input: ArticleRequest): Promise<ArticleResult> {
   const ai = getClient();
+  const models = configuredModels();
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
 
   let text: string | undefined;
-  try {
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL,
-      contents: buildUserPrompt(input),
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseJsonSchema,
-        temperature: 0.7,
-        abortSignal: AbortSignal.timeout(TIMEOUT_MS),
-      },
-    });
-    text = response.text;
-  } catch (error) {
-    throw toUserFacingError(error);
+  let lastError: unknown;
+  for (const [i, model] of models.entries()) {
+    const isLast = i === models.length - 1;
+    const remaining = deadline - Date.now();
+    if (remaining < 5_000) break;
+
+    const config: GenerateContentConfig = {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: "application/json",
+      responseJsonSchema,
+      temperature: 0.7,
+      abortSignal: AbortSignal.timeout(isLast ? remaining : Math.min(PER_ATTEMPT_MS, remaining)),
+    };
+    if (LOW_THINKING_MODELS.has(model)) {
+      config.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
+    }
+
+    try {
+      const started = Date.now();
+      const response = await ai.models.generateContent({ model, contents: buildUserPrompt(input), config });
+      console.info(`[gemini] ${model} answered in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+      text = response.text;
+      lastError = undefined;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (!isRetryable(error) || isLast) break;
+      console.warn(`[gemini] ${model} failed (${error instanceof ApiError ? error.status : (error as Error).name}), trying next model`);
+    }
   }
+  if (lastError) throw toUserFacingError(lastError);
 
   if (!text) {
     throw new UserFacingError(

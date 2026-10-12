@@ -148,7 +148,7 @@ Phase 1 is split into two parts:
 | Web frontend + backend | Next.js (App Router, latest) + TypeScript | 1A | Free |
 | UI | Tailwind CSS, **Inter** font, **15px** border radius, mobile-first, light/dark mode | 1A | Free |
 | Icons | `lucide-react` (brand logos for Google/Facebook as inline SVG) | 1A | Free |
-| AI | **Google Gemini API free tier** — model `gemini-3.8-flash` via official `@google/genai` SDK (configurable with `GEMINI_MODEL`); **Groq free tier** as fallback (later) | 1A | Free |
+| AI | **Google Gemini API free tier** via official `@google/genai` SDK — models tried in order: `gemini-3.6-flash` → `gemini-3.5-flash-lite` (configurable with `GEMINI_MODEL`); **Groq free tier** as extra fallback (later) | 1A | Free |
 | Validation | Zod (shared by browser and server) | 1A | Free |
 | Export | `.md` (built in) and `.docx` (`docx` library, generated in the browser) | 1A | Free |
 | Rate limiting | Upstash Redis free tier (or similar) | 1A | Free |
@@ -237,6 +237,7 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 - [x] Add an Urdu-script font (Noto Nastaliq Urdu) for Urdu articles — Inter has no Urdu letters.
 - [ ] Move the daily limit from server memory to a shared store (e.g. Upstash Redis free tier).
 - [ ] Add `GEMINI_API_KEY` to the hosting provider's environment variables (never in code).
+- [ ] Articles come out shorter than the target length (e.g. ~460 words for "Short ~600"). Consider generating long articles section by section.
 
 ## 12. Decisions Log
 
@@ -251,3 +252,4 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 | 2026-10-13 | Dark mode toggle on all pages; website language dropdown is design-only until a later phase |
 | 2026-10-13 | Icons: `lucide-react`; illustrations are original SVGs (neon purple / pink / blue) |
 | 2026-10-13 | Gemini connected: `gemini-3.8-flash` (free tier) via `@google/genai`; structured JSON output; in-memory 5/day IP limit for now |
+| 2026-10-13 | Default model changed to `gemini-3.6-flash` with automatic fallback to `gemini-3.5-flash-lite`: in testing, `gemini-3.8-flash` took 70–90 s (free-tier high demand) vs ~7 s. 3.8 can be re-enabled via `GEMINI_MODEL` |

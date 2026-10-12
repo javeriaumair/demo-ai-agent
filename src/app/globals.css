@@ -61,6 +61,7 @@
   --color-navy: var(--navy);
   --color-navy-hover: var(--navy-hover);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-urdu: var(--font-nastaliq), "Noto Nastaliq Urdu", serif;
   /* Project rule: 15px border radius for UI elements (class: rounded-brand) */
   --radius-brand: 15px;
 

@@ -30,4 +30,6 @@ We are building **LikhoAI**, a web app that will also have mobile apps (iOS and 
 - Brand gradient (violet → pink → blue): `bg-brand-gradient` / `text-brand-gradient`. Shared field/button classes are in `src/lib/ui.ts`.
 - Dark mode uses `data-theme` on `<html>` (set before paint in `src/app/layout.tsx`); style with `dark:` utilities or the CSS tokens.
 - Folders: `src/app/(marketing)` (landing, blog), `src/app/login`, `src/app/signup`, `src/app/dashboard`; components in `src/components/{landing,auth,dashboard,ui,illustrations,icons}`.
+- AI: `src/app/api/generate/route.ts` (validation, origin check, rate limit) → `src/lib/ai/` (`index.ts` entry point, `gemini.ts`, `prompts.ts`). Server-only modules start with `import "server-only"`. Request/response schemas: `src/lib/article-schema.ts`.
+- Secrets go in `.env.local` (git-ignored); document new variables in `.env.example`.
 - Landing page copy lives in `src/lib/site-content.ts`; article form options in `src/lib/article-options.ts`.

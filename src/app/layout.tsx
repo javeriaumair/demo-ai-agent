@@ -1,10 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Nastaliq_Urdu } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+// Used only for Urdu-script articles (Inter has no Urdu letters).
+const urdu = Noto_Nastaliq_Urdu({
+  variable: "--font-nastaliq",
+  subsets: ["arabic"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -28,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${urdu.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

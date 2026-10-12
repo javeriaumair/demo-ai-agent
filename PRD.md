@@ -4,7 +4,7 @@
 **First agent:** Content Writing Agent
 **Platforms:** Web (Next.js) → Mobile (iOS & Android via Expo)
 **Last updated:** 2026-10-13
-**Status:** Draft v3
+**Status:** Draft v4
 
 ---
 
@@ -102,8 +102,9 @@ Phase 1 is split into two parts:
 - **Meta title:** ≤ 60 characters, includes the main keyword.
 - **Meta description:** ≤ 160 characters, includes the main keyword.
 - **FAQ:** 5 question–answer pairs related to the topic.
-- Output appears progressively (streaming) so the user doesn't wait at a blank screen.
-- Urdu output displays correctly right-to-left (RTL).
+- While generating, the dashboard shows "Article likha ja raha hai..." with a progress animation; errors show a clear message.
+- *Implemented (v1):* one JSON response via Gemini structured output (validated with Zod). Progressive streaming is a later improvement.
+- Urdu output displays correctly right-to-left (RTL) using the **Noto Nastaliq Urdu** font.
 
 #### 4.3 Edit, copy & download
 - Edit the article inside the app (simple rich-text / Markdown editor).
@@ -112,7 +113,8 @@ Phase 1 is split into two parts:
 - Since there is no database in 1A, content lives only in the browser session. Show a clear notice: *"Download or copy your article — it is not saved."*
 
 #### 4.4 Daily limit (1A)
-- **5 articles per day** per visitor, tracked by IP address (server-side, e.g. in-memory or a free key-value store such as Upstash Redis free tier).
+- **5 articles per day** per visitor, tracked by IP address on the server. Failed generations don't count.
+- *Implemented (v1):* in server memory — resets on server restart and is not shared across serverless instances. Move to a free key-value store (e.g. Upstash Redis) before public launch.
 - Show how many generations are left today.
 - Friendly message when the limit or the AI provider's free quota is reached.
 
@@ -146,14 +148,16 @@ Phase 1 is split into two parts:
 | Web frontend + backend | Next.js (App Router, latest) + TypeScript | 1A | Free |
 | UI | Tailwind CSS, **Inter** font, **15px** border radius, mobile-first, light/dark mode | 1A | Free |
 | Icons | `lucide-react` (brand logos for Google/Facebook as inline SVG) | 1A | Free |
-| AI | **Google Gemini API free tier** (latest Flash model); **Groq free tier** as fallback | 1A | Free |
+| AI | **Google Gemini API free tier** — model `gemini-3.8-flash` via official `@google/genai` SDK (configurable with `GEMINI_MODEL`); **Groq free tier** as fallback (later) | 1A | Free |
+| Validation | Zod (shared by browser and server) | 1A | Free |
+| Export | `.md` (built in) and `.docx` (`docx` library, generated in the browser) | 1A | Free |
 | Rate limiting | Upstash Redis free tier (or similar) | 1A | Free |
 | Hosting | Vercel (Hobby/free tier) | 1A | Free |
 | Auth + Database | Supabase (Postgres + Auth, free tier) | 1B | Free |
 | Mobile | React Native + Expo (latest) | 2 | Free |
 
 ### 5.2 AI provider abstraction
-- All AI calls go through **one server-side module** (e.g. `lib/ai/provider.ts`) with a common interface.
+- All AI calls go through **one server-side module** (`src/lib/ai/index.ts` → `generateArticle()`), called only by the `POST /api/generate` route.
 - Switching providers (Gemini → Groq → paid API later) should only require a config/env change, not a rewrite.
 - Prompts are stored as versioned templates, separate from code.
 - Each section (outline, article, meta, FAQ) has its own prompt, so single-section regeneration in 1B needs no restructuring.
@@ -169,6 +173,8 @@ Phase 1 is split into two parts:
 - All AI calls happen on the server (Next.js route handlers / server actions).
 - Validate and sanitize all inputs (e.g. with Zod); limit input length.
 - Rate limiting per IP (1A) and per user (1B).
+- `POST /api/generate` rejects cross-site browser requests (Origin check), non-JSON bodies, and bodies over 10 KB.
+- `GEMINI_API_KEY` lives in `.env.local` (git-ignored); `.env.example` documents the variables without secrets. AI modules import `server-only` so they can never be bundled for the browser.
 - Sanitize generated HTML/Markdown before rendering (prevent XSS).
 - Basic prompt-injection protection: user input is clearly separated from system instructions.
 - **1B:** Supabase **Row Level Security (RLS)** — users can only access their own data.
@@ -228,7 +234,9 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 - [ ] Replace the **sample testimonials** on the landing page with real customer quotes (with their permission). The current ones are clearly marked "Sample User".
 - [ ] Add Privacy Policy and Terms of Service pages (required for Google/Facebook login and for the free-tier AI data notice).
 - [ ] Replace the Blog "coming soon" page, or hide the Blog link.
-- [ ] Add an Urdu-script font (e.g. Noto Nastaliq Urdu) for Urdu articles — Inter has no Urdu letters.
+- [x] Add an Urdu-script font (Noto Nastaliq Urdu) for Urdu articles — Inter has no Urdu letters.
+- [ ] Move the daily limit from server memory to a shared store (e.g. Upstash Redis free tier).
+- [ ] Add `GEMINI_API_KEY` to the hosting provider's environment variables (never in code).
 
 ## 12. Decisions Log
 
@@ -242,3 +250,4 @@ Google + Facebook + Email login, Supabase database, saved history, single-sectio
 | 2026-10-13 | **Facebook login** added to Phase 1B (with Google + Email) |
 | 2026-10-13 | Dark mode toggle on all pages; website language dropdown is design-only until a later phase |
 | 2026-10-13 | Icons: `lucide-react`; illustrations are original SVGs (neon purple / pink / blue) |
+| 2026-10-13 | Gemini connected: `gemini-3.8-flash` (free tier) via `@google/genai`; structured JSON output; in-memory 5/day IP limit for now |

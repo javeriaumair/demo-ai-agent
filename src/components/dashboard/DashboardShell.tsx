@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings, soon: true },
 ];
 
-// Free plan limit (see PRD). Real usage tracking comes with the AI backend.
+// Free plan limit (see PRD). The exact remaining count is shown after each generation.
 const DAILY_LIMIT = 5;
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -112,12 +112,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
         <div className="rounded-brand border border-line bg-surface-2 p-4">
           <p className="text-sm font-semibold">Free plan</p>
-          <p className="mt-1 text-xs text-muted">
-            {DAILY_LIMIT} of {DAILY_LIMIT} articles left today
-          </p>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-line">
-            <div className="h-full w-full rounded-full bg-brand-gradient" />
-          </div>
+          <p className="mt-1 text-xs text-muted">Up to {DAILY_LIMIT} articles per day</p>
         </div>
 
         <Link
